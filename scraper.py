@@ -228,7 +228,16 @@ def main():
         elif args.cmd == "morehouse":
             print(scrape_morehouse_mission())
         elif args.cmd == "fakejobs":
-            count = scrape_fake_jobs_to_csv(Path(args.out))
+            count = scrape_fake_jobs_to_csv(
+                out_path=Path(args.out),
+                include=args.include,
+                exclude=args.exclude,
+                location=args.location,
+                since_str=args.since_str,
+                dedupe=args.dedupe,
+                sort_by=args.sort_by,
+                limit=args.limit,
+            )
             print(f"Wrote {count} rows to {args.out}")
         else:
             parser.print_help()
