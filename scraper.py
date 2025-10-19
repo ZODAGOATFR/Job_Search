@@ -31,6 +31,9 @@ def welcome_and_purpose():
     ))
     print()
     
+def _txt(el) -> str:
+    return el.get_text(strip=True) if el else ""
+    
 def scrape_xula_mission():
     """Fetch and return XULA's mission statement text."""
     URL = "https://www.xula.edu/about/mission-values.html"
