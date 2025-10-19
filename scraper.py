@@ -30,6 +30,21 @@ def welcome_and_purpose():
         width=78
     ))
     print()
+    
+def scrape_xula_mission():
+    """Fetch and return XULA's mission statement text."""
+    URL = "https://www.xula.edu/about/mission-values.html"
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    response = requests.get(URL, headers=headers)
+    response.raise_for_status()  # raises an error if request fails
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    mission_div = soup.find('div', class_='editorarea')
+
+    if mission_div:
+        return mission_div.get_text(strip=True)
+    else:
+        return "Mission statement not found."
 
 
 def main():
