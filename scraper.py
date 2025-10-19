@@ -1,3 +1,6 @@
+import argparse, csv, sys, textwrap
+from pathlib import Path
+
 import requests
 from bs4 import BeautifulSoup
 def main():
