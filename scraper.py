@@ -102,10 +102,27 @@ def scrape_morehouse_mission():
         return " ".join(_txt(p) for p in paras if _txt(p))
     return "Mission statement not found."
     
-def scrape_fake_jobs_to_csv(out_path: Path) -> int:
+def scrape_fake_jobs_to_csv(
+    out_path: Path,
+    include: List[str] | None = None,
+    exclude: List[str] | None = None,
+    location: str | None = None,
+    since_str: str | None = None,
+    dedupe: bool = False,
+    sort_by: str | None = None,  # 'date' | 'title' | 'company' | 'location'
+    limit: int | None = None,
+) -> int:
     """
     Scrape fake job postings and write to CSV with header:
     Job Title, Company, Location, Date Posted
+
+    Bonus:
+      - include/exclude keyword filters (case-insensitive)
+      - location contains filter
+      - since (YYYY-MM-DD) date cutoff
+      - dedupe by (title, company, location)
+      - sort by date/title/company/location
+      - limit N rows after sort
     """
     url = "https://realpython.github.io/fake-jobs/"
     resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
@@ -113,21 +130,62 @@ def scrape_fake_jobs_to_csv(out_path: Path) -> int:
     soup = BeautifulSoup(resp.text, "html.parser")
 
     cards = soup.select("div.card-content")
-    rows = []
+    rows: List[Tuple[str, str, str, str]] = []
     for c in cards:
         title = _txt(c.select_one("h2.title"))
         company = _txt(c.select_one("h3.subtitle"))
-        location = _txt(c.select_one("p.location"))
+        loc = _txt(c.select_one("p.location"))
         date_posted = _txt(c.select_one("time"))
-        rows.append([title, company, location, date_posted])
+        rows.append((title, company, loc, date_posted))
 
+    # Filters
+    since_dt = None
+    if since_str:
+        try:
+            since_dt = datetime.strptime(since_str, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("Invalid --since format. Use YYYY-MM-DD.")
+
+    rows = [r for r in rows if _passes_filters(
+        r, include or [], exclude or [], location, since_dt
+    )]
+
+    # Dedupe by (title, company, location)
+    if dedupe:
+        seen = set()
+        new_rows = []
+        for r in rows:
+            key = (r[0].lower(), r[1].lower(), r[2].lower())
+            if key not in seen:
+                seen.add(key)
+                new_rows.append(r)
+        rows = new_rows
+
+    # Sort
+    if sort_by:
+        idx_map = {"title": 0, "company": 1, "location": 2, "date": 3}
+        if sort_by not in idx_map:
+            raise ValueError("Invalid --sort. Choose: date, title, company, location")
+        idx = idx_map[sort_by]
+        if sort_by == "date":
+            rows.sort(key=lambda r: (_parse_date(r[3]) or datetime.min), reverse=True)
+        else:
+            rows.sort(key=lambda r: (r[idx] or "").lower())
+
+    # Limit
+    if isinstance(limit, int) and limit > 0:
+        rows = rows[:limit]
+
+    # Write CSV
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["Job Title", "Company", "Location", "Date Posted"])
-        w.writerows(rows)
+        for r in rows:
+            w.writerow(list(r))
 
     return len(rows)
+
 
 
 
