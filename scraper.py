@@ -203,8 +203,16 @@ def main():
     sub.add_parser("morehouse", help="Print Morehouse mission statement")
 
     # Fake jobs -> CSV
-    pj = sub.add_parser("fakejobs", help="Scrape fake jobs to CSV")
+    pj = sub.add_parser("fakejobs", help="Scrape fake jobs to CSV (with filters)")
     pj.add_argument("--out", default="fake_jobs.csv", help="Output CSV path")
+    pj.add_argument("--include", nargs="*", default=[], help="Require these terms in title/company/location")
+    pj.add_argument("--exclude", nargs="*", default=[], help="Exclude rows containing these terms")
+    pj.add_argument("--location", default=None, help="Only keep rows whose location contains this text")
+    pj.add_argument("--since", dest="since_str", default=None, help="Only keep rows with Date Posted >= YYYY-MM-DD")
+    pj.add_argument("--dedupe", action="store_true", help="Remove duplicates by (title, company, location)")
+    pj.add_argument("--sort", dest="sort_by", choices=["date", "title", "company", "location"], default=None, help="Sort rows by this column")
+    pj.add_argument("--limit", type=int, default=None, help="Keep only the first N rows after sort")
+
 
     args = parser.parse_args()
 
