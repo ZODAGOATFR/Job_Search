@@ -38,6 +38,38 @@ def welcome_and_purpose():
     
 def _txt(el) -> str:
     return el.get_text(strip=True) if el else ""
+
+def _parse_date(s: str) -> datetime | None:
+    """Best-effort date parser; extend formats as needed."""
+    for fmt in ("%Y-%m-%d", "%b %d, %Y", "%B %d, %Y"):
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    return None
+
+def _passes_filters(
+    row: Tuple[str, str, str, str],
+    include: Iterable[str],
+    exclude: Iterable[str],
+    location: str | None,
+    since: datetime | None,
+) -> bool:
+    title, company, loc, date_str = row
+    blob = f"{title} {company} {loc}".lower()
+
+    if include and not all(term.lower() in blob for term in include):
+        return False
+    if exclude and any(term.lower() in blob for term in exclude):
+        return False
+    if location and location.lower() not in loc.lower():
+        return False
+    if since is not None:
+        d = _parse_date(date_str)
+        if not d or d < since:
+            return False
+    return True
+
     
 def scrape_xula_mission():
     """Fetch and return XULA's mission statement text."""
