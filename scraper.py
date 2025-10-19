@@ -119,18 +119,22 @@ def main():
         parser.print_help()
         return
 
-    if args.cmd == "xula":
-        print(scrape_xula_mission())
-        return
-
-    if args.cmd == "morehouse":
-        print(scrape_morehouse_mission())
-        return
-
-    if args.cmd == "fakejobs":
-        count = scrape_fake_jobs_to_csv(Path(args.out))
-        print(f"Wrote {count} rows to {args.out}")
-        return
+    try:
+        if args.cmd == "xula":
+            print(scrape_xula_mission())
+        elif args.cmd == "morehouse":
+            print(scrape_morehouse_mission())
+        elif args.cmd == "fakejobs":
+            count = scrape_fake_jobs_to_csv(Path(args.out))
+            print(f"Wrote {count} rows to {args.out}")
+        else:
+            parser.print_help()
+    except requests.HTTPError as e:
+        print(f"HTTP error: {e}", file=sys.stderr)
+        sys.exit(2)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
