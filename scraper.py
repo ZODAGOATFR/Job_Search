@@ -90,21 +90,42 @@ def scrape_fake_jobs_to_csv(out_path: Path) -> int:
 
 
 def main():
-    print("\n\nHello, World from scraper.py!\n\n")
-    URL = "https://www.xula.edu/about/mission-values.html"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    response = requests.get(URL, headers= headers)
-    html_content = response.content
-    soup = BeautifulSoup(html_content, 'html.parser')
-    missionStatement = soup.find('div', class_ = 'editorarea')
-    print(missionStatement.text)
-    URL2 = "https://morehouse.edu/about/mission-and-values"
-    response2 = requests.get(URL2, headers= headers)
-    html_content2 = response2.content
-    soup2 = BeautifulSoup(html_content2, 'html.parser')
-    missionStatement2 = soup2.find('p', class_ = 'paragraph')
-    print(missionStatement2.text)
+    parser = argparse.ArgumentParser(description="Job Search helper CLI")
+    sub = parser.add_subparsers(dest="cmd")
 
+    # Welcome (ASCII art + purpose)
+    sub.add_parser("welcome", help="Show banner and explain purpose")
+
+    # XULA mission
+    sub.add_parser("xula", help="Print XULA mission statement")
+
+    # Morehouse mission
+    sub.add_parser("morehouse", help="Print Morehouse mission statement")
+
+    # Fake jobs -> CSV
+    pj = sub.add_parser("fakejobs", help="Scrape fake jobs to CSV")
+    pj.add_argument("--out", default="fake_jobs.csv", help="Output CSV path")
+
+    args = parser.parse_args()
+
+    # Default: show banner/purpose if no subcommand
+    if not args.cmd or args.cmd == "welcome":
+        welcome_and_purpose()
+        parser.print_help()
+        return
+
+    if args.cmd == "xula":
+        print(scrape_xula_mission())
+        return
+
+    if args.cmd == "morehouse":
+        print(scrape_morehouse_mission())
+        return
+
+    if args.cmd == "fakejobs":
+        count = scrape_fake_jobs_to_csv(Path(args.out))
+        print(f"Wrote {count} rows to {args.out}")
+        return
 
 if __name__ == "__main__":
     main()
