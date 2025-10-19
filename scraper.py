@@ -75,13 +75,13 @@ def scrape_fake_jobs_to_csv(out_path: Path) -> int:
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    cards = soup.select("div.card-content")  # find-by-class example
+    cards = soup.select("div.card-content")
     rows = []
     for c in cards:
-        title = (c.select_one("h2.title") or {}).get_text(strip=True) if c.select_one("h2.title") else ""
-        company = (c.select_one("h3.subtitle") or {}).get_text(strip=True) if c.select_one("h3.subtitle") else ""
-        location = (c.select_one("p.location") or {}).get_text(strip=True) if c.select_one("p.location") else ""
-        date_posted = (c.select_one("time") or {}).get_text(strip=True) if c.select_one("time") else ""
+        title = _txt(c.select_one("h2.title"))
+        company = _txt(c.select_one("h3.subtitle"))
+        location = _txt(c.select_one("p.location"))
+        date_posted = _txt(c.select_one("time"))
         rows.append([title, company, location, date_posted])
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -91,6 +91,7 @@ def scrape_fake_jobs_to_csv(out_path: Path) -> int:
         w.writerows(rows)
 
     return len(rows)
+
 
 
 def main():
