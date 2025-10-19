@@ -60,6 +60,33 @@ def scrape_morehouse_mission():
         return mission_paragraph.get_text(strip=True)
     else:
         return "Mission statement not found."
+    
+def scrape_fake_jobs_to_csv(out_path: Path) -> int:
+    """
+    Scrape fake job postings and write to CSV with header:
+    Job Title, Company, Location, Date Posted
+    """
+    url = "https://realpython.github.io/fake-jobs/"
+    resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    cards = soup.select("div.card-content")  # find-by-class example
+    rows = []
+    for c in cards:
+        title = (c.select_one("h2.title") or {}).get_text(strip=True) if c.select_one("h2.title") else ""
+        company = (c.select_one("h3.subtitle") or {}).get_text(strip=True) if c.select_one("h3.subtitle") else ""
+        location = (c.select_one("p.location") or {}).get_text(strip=True) if c.select_one("p.location") else ""
+        date_posted = (c.select_one("time") or {}).get_text(strip=True) if c.select_one("time") else ""
+        rows.append([title, company, location, date_posted])
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["Job Title", "Company", "Location", "Date Posted"])
+        w.writerows(rows)
+
+    return len(rows)
 
 
 def main():
