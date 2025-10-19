@@ -37,32 +37,33 @@ def _txt(el) -> str:
 def scrape_xula_mission():
     """Fetch and return XULA's mission statement text."""
     URL = "https://www.xula.edu/about/mission-values.html"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    response = requests.get(URL, headers=headers)
+    response = requests.get(URL, headers=HEADERS, timeout=TIMEOUT)
     response.raise_for_status()  # raises an error if request fails
-
     soup = BeautifulSoup(response.content, 'html.parser')
-    mission_div = soup.find('div', class_='editorarea')
-
-    if mission_div:
-        return mission_div.get_text(strip=True)
-    else:
+    
+    container = soup.find("div", class_="editorarea")
+    if not container:
         return "Mission statement not found."
+
+    # Prefer a paragraph that includes the hint substring if present.
+    for p in container.find_all("p"):
+        t = _txt(p)
+        if "founded by Saint" in t or "mission" in t.lower():
+            return t
+
+    return _txt(container)
     
 def scrape_morehouse_mission():
     """Fetch and return Morehouse College's mission statement text."""
     URL = "https://morehouse.edu/about/mission-and-values"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    response = requests.get(URL, headers=headers)
+    response = requests.get(URL, headers=HEADERS, timeout=TIMEOUT)
     response.raise_for_status()  # raise error if request fails
-
     soup = BeautifulSoup(response.content, 'html.parser')
-    mission_paragraph = soup.find('p', class_='paragraph')
-
-    if mission_paragraph:
-        return mission_paragraph.get_text(strip=True)
-    else:
-        return "Mission statement not found."
+    
+    paras = soup.select("p.paragraph")
+    if paras:
+        return " ".join(_txt(p) for p in paras if _txt(p))
+    return "Mission statement not found."
     
 def scrape_fake_jobs_to_csv(out_path: Path) -> int:
     """
