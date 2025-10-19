@@ -3,6 +3,35 @@ from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+TIMEOUT = 30
+
+ASCII = r"""
+   __        _     _           _                 _
+  /__\  ___ | | __| | ___  ___| |__   ___   ___ | |_
+ / \// / _ \| |/ _` |/ _ \/ __| '_ \ / _ \ / _ \| __|
+/ _  \| (_) | | (_| |  __/\__ \ | | | (_) | (_) | |_
+\/ \_/ \___/|_|\__,_|\___||___/_| |_|\___/ \___/ \__|
+
+"""
+
+def welcome_and_purpose():
+    """TODO 3 + TODO 4: Pretty banner + explain app purpose"""
+    print(ASCII)
+    print("Welcome to the Job Search helper!\n")
+    print(textwrap.fill(
+        "This CLI shows how to: (1) scrape university mission statements "
+        "with BeautifulSoup, (2) learn find-by-class selectors, and "
+        "(3) scrape fake job postings and save them into a CSV "
+        "file named fake_jobs.csv with the required columns.",
+        width=78
+    ))
+    print()
+
+
 def main():
     print("\n\nHello, World from scraper.py!\n\n")
     URL = "https://www.xula.edu/about/mission-values.html"
