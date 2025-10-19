@@ -45,6 +45,21 @@ def scrape_xula_mission():
         return mission_div.get_text(strip=True)
     else:
         return "Mission statement not found."
+    
+def scrape_morehouse_mission():
+    """Fetch and return Morehouse College's mission statement text."""
+    URL = "https://morehouse.edu/about/mission-and-values"
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    response = requests.get(URL, headers=headers)
+    response.raise_for_status()  # raise error if request fails
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    mission_paragraph = soup.find('p', class_='paragraph')
+
+    if mission_paragraph:
+        return mission_paragraph.get_text(strip=True)
+    else:
+        return "Mission statement not found."
 
 
 def main():
